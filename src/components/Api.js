@@ -9,6 +9,8 @@ export default {
 
   // App endpoints
   notification: "/api/v1/notification/",
-  products: "https://superherostoystore.onrender.com/api/v1/product_share/",
-  activity: "https://superherostoystore.onrender.com/api/v1/activity/",
+  books: "/api/v1/products/",
+  edit_book: "/api/v1/edit_product/",
+  record_visit: "/api/v1/record_visit_history/",
+  place_order: "/api/v1/place_order/",
 };

@@ -21,7 +21,7 @@ const customSignInStyles = makeStyles((theme) => ({
   leftSide: {
     width: "100%",
     height: "100vh",
-    backgroundColor: "#000000",
+    backgroundColor: "#2069D8",
     [theme.breakpoints.down("sm")]: {
       width: "100%",
       height: "40vh",
@@ -214,7 +214,7 @@ const SignInPage = () => {
   const navigate = useNavigate();
   const login = useGoogleLogin({
     onSuccess: (codeResponse) => {
-      window.localStorage.setItem("token", codeResponse.access_token);
+      window.sessionStorage.setItem("token", codeResponse.access_token);
       navigate("/");
     },
     onError: (error) => console.log("Login Failed:", error),
@@ -224,7 +224,7 @@ const SignInPage = () => {
     <Page title="signin">
       <Container className={customStyles.mainBlock}>
         <Box className={customStyles.leftSide}>
-          <Typography className={customStyles.title}>Board.</Typography>
+          <Typography className={customStyles.title}>LIBRARY.</Typography>
         </Box>
         <Box className={customStyles.rightSide}>
           <Typography className={customStyles.signIn}>Sign In</Typography>

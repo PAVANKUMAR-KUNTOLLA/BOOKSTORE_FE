@@ -1,58 +1,78 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-import { setNavOpen, setProfile } from "../../redux/app/appSlice";
-import Navbar from "../MinimalLayout";
-import "../../App.css";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { privateApiGET } from "../../components/PrivateRoute";
+import Api from "../../components/Api";
+import { setBooks } from "../../redux/bookStore/booksSlice";
+import { setUserInfo } from "../../redux/app/appSlice";
+import SearchResultsPage from "../../components/SearchResults";
+import AppBarLayout from "../../components/appbar";
 
 const AppLayout = () => {
-  const profile = useSelector((state) => state.app.profile);
-  const [isLoadingSpin, SetIsLoadingSpin] = useState(false);
-  const isNavOpen = useSelector((state) => state.app.isNavOpen);
+  const books = useSelector((state) => state.books.books);
   const dispatch = useDispatch();
+  const location = useLocation();
+  const [loadingSpin, setLoadingSpin] = useState(false);
+  const isSearchOn = useSelector((state) => state.books.isSearchOn);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let token = localStorage.getItem("token");
-    console.log(window.screen.width);
-    SetIsLoadingSpin(true);
-    axios({
-      method: "GET",
-      url: `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${token}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    })
-      .then((res) => {
-        dispatch(setProfile(res.data));
-        SetIsLoadingSpin(false);
+  const handleFetchbooks = () => {
+    setLoadingSpin(true);
+    privateApiGET(Api.books)
+      .then((response) => {
+        const { status, data } = response;
+        if (status === 200) {
+          console.log("data", data);
+          // Dispatch the setbooks action with the fetched data
+          dispatch(setBooks(data?.data));
+          setLoadingSpin(false);
+        }
       })
-      .catch((err) => {
-        console.log(err.response);
-        SetIsLoadingSpin(false);
-        if (err.response.status === 401) {
+      .catch((error) => {
+        console.log("Error", error);
+        setLoadingSpin(false);
+        if (error.response.status === 401) {
           navigate("/login");
         }
       });
-  }, []);
+  };
 
+  const handleFetchUserInfo = () => {
+    privateApiGET(Api.profile)
+      .then((response) => {
+        const { status, data } = response;
+        if (status === 200) {
+          console.log("data", data);
+          dispatch(setUserInfo(data?.data));
+        }
+      })
+      .catch((error) => {
+        console.log("Error", error);
+        if (error.response.status === 401) {
+          navigate("/login");
+        }
+      });
+  };
+
+  useEffect(() => {
+    if (!location.pathname.startsWith("/app/books") || books.length === 0) {
+      handleFetchbooks();
+    }
+    if (location.pathname === "/app/profile") {
+      handleFetchUserInfo();
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    handleFetchUserInfo();
+    handleFetchbooks();
+  }, []);
   return (
     <div>
-      {/* {profile && !isLoadingSpin && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            position: "relative",
-          }}
-        >
-          {(window.screen.width > 767 || isNavOpen) && <Navbar />}
-          {!isNavOpen ? <Outlet /> : null}
-        </div>
-      )} */}
-      <Outlet />
+      <div>
+        <AppBarLayout />
+      </div>
+      <div>{!isSearchOn ? <Outlet /> : <SearchResultsPage />}</div>
     </div>
   );
 };
